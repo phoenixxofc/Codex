@@ -5,11 +5,12 @@ import {
   Check,
   Download,
   Code,
-  Sparkles
+  Sparkles,
+  X
 } from 'lucide-react';
 
 export const OutputPane = () => {
-  const { outputText, activeTool, showToast } = useApp();
+  const { outputText, setOutputText, activeTool, setActiveTool, showToast } = useApp();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -34,6 +35,12 @@ export const OutputPane = () => {
     showToast('Downloaded result file');
   };
 
+  const handleDeselectTool = () => {
+    setActiveTool(null);
+    setOutputText('');
+    showToast('Deselected tool & cleared result');
+  };
+
   return (
     <div className="flex flex-col h-full bg-slate-900/60 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
 
@@ -45,9 +52,16 @@ export const OutputPane = () => {
             Transformed Result
           </span>
           {activeTool && (
-            <span className="text-[10px] font-medium text-cyan-400 bg-cyan-950/80 border border-cyan-800/60 px-2 py-0.5 rounded-full">
-              {activeTool}
-            </span>
+            <div className="flex items-center gap-1 text-[10px] font-medium text-cyan-400 bg-cyan-950/80 border border-cyan-800/60 px-2 py-0.5 rounded-full">
+              <span>{activeTool}</span>
+              <button
+                onClick={handleDeselectTool}
+                className="hover:text-rose-400 transition-colors ml-0.5"
+                title="Cancel / Deselect Tool"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
           )}
         </div>
 

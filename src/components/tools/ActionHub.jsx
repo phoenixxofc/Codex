@@ -20,7 +20,8 @@ import {
   Baseline,
   Link2,
   Sparkles,
-  FileCode
+  FileCode,
+  Bot
 } from 'lucide-react';
 
 export const ActionHub = () => {
@@ -46,13 +47,27 @@ export const ActionHub = () => {
     showToast(`Applied: ${name}`);
   };
 
+  const handleDeselectTool = () => {
+    setActiveTool(null);
+    setOutputText('');
+    showToast('Deselected active tool');
+  };
+
   const toolsList = [
-    // Text Formatting Tools
+    // AI & Formatting Tools
+    {
+      id: 'ai-humanizer',
+      title: 'AI Text Humanizer & Polisher',
+      description: 'Removes AI filler phrases ("it is important to note", "tapestry") and simplifies complex buzzwords.',
+      category: 'AI & Formatting',
+      icon: Bot,
+      action: (text) => transformers.humanizeAiText(text)
+    },
     {
       id: 'uppercase',
       title: 'UPPERCASE',
       description: 'Converts all characters in input stream to capital letters.',
-      category: 'Formatting',
+      category: 'AI & Formatting',
       icon: CaseUpper,
       action: (text) => transformers.toUppercase(text)
     },
@@ -60,7 +75,7 @@ export const ActionHub = () => {
       id: 'lowercase',
       title: 'lowercase',
       description: 'Converts all text characters to lower case.',
-      category: 'Formatting',
+      category: 'AI & Formatting',
       icon: CaseLower,
       action: (text) => transformers.toLowercase(text)
     },
@@ -68,7 +83,7 @@ export const ActionHub = () => {
       id: 'titlecase',
       title: 'Title Case',
       description: 'Capitalizes first letter of each word in the string.',
-      category: 'Formatting',
+      category: 'AI & Formatting',
       icon: Baseline,
       action: (text) => transformers.toTitleCase(text)
     },
@@ -76,7 +91,7 @@ export const ActionHub = () => {
       id: 'camelcase',
       title: 'camelCase',
       description: 'Formats text into camelCase variable naming convention.',
-      category: 'Formatting',
+      category: 'AI & Formatting',
       icon: Type,
       action: (text) => transformers.toCamelCase(text)
     },
@@ -84,7 +99,7 @@ export const ActionHub = () => {
       id: 'kebabcase',
       title: 'kebab-case',
       description: 'Converts spaces and capitalization into dash-separated words.',
-      category: 'Formatting',
+      category: 'AI & Formatting',
       icon: Link2,
       action: (text) => transformers.toKebabCase(text)
     },
@@ -92,7 +107,7 @@ export const ActionHub = () => {
       id: 'snakecase',
       title: 'snake_case',
       description: 'Converts input text into underscore-separated lowercase words.',
-      category: 'Formatting',
+      category: 'AI & Formatting',
       icon: Code2,
       action: (text) => transformers.toSnakeCase(text)
     },
@@ -100,7 +115,7 @@ export const ActionHub = () => {
       id: 'slug',
       title: 'URL Slug Generator',
       description: 'Creates safe, sanitized web URL slug strings.',
-      category: 'Formatting',
+      category: 'AI & Formatting',
       icon: Link2,
       action: (text) => transformers.generateSlug(text)
     },
@@ -108,7 +123,7 @@ export const ActionHub = () => {
       id: 'stripspaces',
       title: 'Strip Whitespace',
       description: 'Collapses redundant spaces and trims padding whitespace.',
-      category: 'Formatting',
+      category: 'AI & Formatting',
       icon: Scissors,
       action: (text) => transformers.stripExtraSpaces(text)
     },
@@ -116,7 +131,7 @@ export const ActionHub = () => {
       id: 'removelines',
       title: 'Remove Line Breaks',
       description: 'Replaces newline characters with single spaces.',
-      category: 'Formatting',
+      category: 'AI & Formatting',
       icon: Type,
       action: (text) => transformers.removeLineBreaks(text)
     },
@@ -216,15 +231,26 @@ export const ActionHub = () => {
     );
   });
 
-  const categories = ['Formatting', 'Extraction', 'Developer'];
+  const categories = ['AI & Formatting', 'Extraction', 'Developer'];
 
   return (
     <div className="my-6">
-      <div className="flex items-center gap-2 mb-4">
-        <Sparkles className="w-5 h-5 text-cyan-400" />
-        <h2 className="text-lg font-bold text-slate-100 tracking-tight">
-          Action Hub & Utility Engine
-        </h2>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-cyan-400" />
+          <h2 className="text-lg font-bold text-slate-100 tracking-tight">
+            Action Hub & Utility Engine
+          </h2>
+        </div>
+
+        {activeTool && (
+          <button
+            onClick={handleDeselectTool}
+            className="text-xs font-semibold text-rose-400 hover:text-rose-300 bg-rose-950/60 border border-rose-800/80 px-3 py-1 rounded-lg transition-colors"
+          >
+            Clear Selected Tool ({activeTool})
+          </button>
+        )}
       </div>
 
       {categories.map((cat) => {
@@ -233,8 +259,8 @@ export const ActionHub = () => {
 
         return (
           <div key={cat} className="mb-6">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 border-b border-slate-800/80 pb-1">
-              {cat} Utilities
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 border-b border-slate-800/80 pb-1 flex items-center justify-between">
+              <span>{cat} Utilities</span>
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
               {catTools.map((tool) => (
@@ -243,9 +269,9 @@ export const ActionHub = () => {
                   title={tool.title}
                   description={tool.description}
                   icon={tool.icon}
-                  category={tool.category}
                   active={activeTool === tool.title}
                   onClick={() => handleExecuteTool(tool.title, tool.action)}
+                  onDeselect={handleDeselectTool}
                 />
               ))}
             </div>

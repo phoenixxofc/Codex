@@ -7,7 +7,8 @@ import {
   Moon,
   History,
   Sliders,
-  ShieldCheck
+  ShieldCheck,
+  X
 } from 'lucide-react';
 
 export const Header = () => {
@@ -18,8 +19,18 @@ export const Header = () => {
     toggleTheme,
     setIsHistoryOpen,
     setIsMacroModalOpen,
-    history
+    history,
+    activeTool,
+    setActiveTool,
+    setOutputText,
+    showToast
   } = useApp();
+
+  const handleDeselectTool = () => {
+    setActiveTool(null);
+    setOutputText('');
+    showToast('Deselected tool & reset output');
+  };
 
   return (
     <header className="sticky top-0 z-30 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 lg:px-8 py-3 transition-colors">
@@ -48,7 +59,7 @@ export const Header = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search tools (e.g. UPPERCASE, JSON, Regex, Base64)..."
+              placeholder="Search tools (e.g. UPPERCASE, Humanizer, JSON, Base64)..."
               className="w-full bg-slate-950/70 border border-slate-800 text-slate-200 text-sm rounded-lg pl-9 pr-4 py-1.5 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 placeholder-slate-500 transition-all"
             />
           </div>
@@ -56,6 +67,20 @@ export const Header = () => {
 
         {/* Action Controls */}
         <div className="flex items-center gap-2">
+          {/* Active Tool Removal Pill */}
+          {activeTool && (
+            <div className="hidden sm:flex items-center gap-1.5 text-xs text-cyan-400 bg-cyan-950/60 border border-cyan-800/80 px-2.5 py-1 rounded-lg">
+              <span className="font-semibold">{activeTool}</span>
+              <button
+                onClick={handleDeselectTool}
+                className="hover:text-rose-400 transition-colors p-0.5"
+                title="Deselect Active Tool"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
           {/* Privacy Badge */}
           <div className="hidden lg:flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-950/40 border border-emerald-800/50 px-2.5 py-1 rounded-full">
             <ShieldCheck className="w-3.5 h-3.5" />

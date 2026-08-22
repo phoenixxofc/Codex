@@ -29,6 +29,14 @@ describe('textTransformers Unit Tests', () => {
     expect(transformers.generateSlug('TextFlow.io Enterprise Utility!')).toBe('textflowio-enterprise-utility');
   });
 
+  test('humanizeAiText strips AI filler words and simplifies vague buzzwords', () => {
+    const rawAiText = 'It is important to note that we must utilize robust solutions in order to spearhead growth.';
+    const cleaned = transformers.humanizeAiText(rawAiText);
+    expect(cleaned).toBe('we must use strong solutions to lead growth.');
+    expect(cleaned).not.toContain('It is important to note that');
+    expect(cleaned).not.toContain('utilize');
+  });
+
   test('calculateMetrics returns accurate counts', () => {
     const metrics = transformers.calculateMetrics('Hello world textflow');
     expect(metrics.characters).toBe(20);
