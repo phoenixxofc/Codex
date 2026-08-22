@@ -131,6 +131,60 @@ export const humanizeAiText = (text) => {
   return result.replace(/[ \t]+/g, ' ').replace(/\n\s*\n/g, '\n').trim();
 };
 
+/**
+ * Smart Sentence & Proper Noun Capitalizer
+ * Capitalizes words at the start of sentences and preserves/formats essential proper nouns,
+ * brand names (ChatGPT, GPT-4, TextFlow), technical terms (API, JSON, HTTP, URL), days, months, and personal pronoun 'I'.
+ */
+export const capitalizeNecessaryWords = (text) => {
+  if (!text) return '';
+
+  // 1. Capitalize first letter of sentences (. ? ! or start of text/line)
+  let result = text.replace(/(^\s*|[.!?]\s+|\n\s*)([a-z])/g, (match, prefix, char) => {
+    return prefix + char.toUpperCase();
+  });
+
+  // 2. Capitalize standalone pronoun "i" -> "I"
+  result = result.replace(/\b(i)\b/g, 'I');
+
+  // 3. Map common tech brands, acronyms, and proper nouns to exact proper casing
+  const properNouns = [
+    [/\bchatgpt\b/gi, 'ChatGPT'],
+    [/\bgpt\b/gi, 'GPT'],
+    [/\bgpt-3\b/gi, 'GPT-3'],
+    [/\bgpt-4\b/gi, 'GPT-4'],
+    [/\btextflow\b/gi, 'TextFlow'],
+    [/\bopenai\b/gi, 'OpenAI'],
+    [/\bapi\b/gi, 'API'],
+    [/\bapis\b/gi, 'APIs'],
+    [/\bjson\b/gi, 'JSON'],
+    [/\bhtml\b/gi, 'HTML'],
+    [/\bcss\b/gi, 'CSS'],
+    [/\burl\b/gi, 'URL'],
+    [/\burls\b/gi, 'URLs'],
+    [/\bhttp\b/gi, 'HTTP'],
+    [/\bhttps\b/gi, 'HTTPS'],
+    [/\bip\b/gi, 'IP'],
+    [/\bsql\b/gi, 'SQL'],
+    [/\bjavascript\b/gi, 'JavaScript'],
+    [/\btypescript\b/gi, 'TypeScript'],
+    [/\breact\b/gi, 'React'],
+    [/\bmonday\b/gi, 'Monday'],
+    [/\btuesday\b/gi, 'Tuesday'],
+    [/\bwednesday\b/gi, 'Wednesday'],
+    [/\bthursday\b/gi, 'Thursday'],
+    [/\bfriday\b/gi, 'Friday'],
+    [/\bsaturday\b/gi, 'Saturday'],
+    [/\bsunday\b/gi, 'Sunday']
+  ];
+
+  properNouns.forEach(([regex, replacement]) => {
+    result = result.replace(regex, replacement);
+  });
+
+  return result;
+};
+
 export const calculateMetrics = (text) => {
   if (!text) {
     return { characters: 0, words: 0, lines: 0, readingTimeMinutes: 0 };

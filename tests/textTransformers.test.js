@@ -37,6 +37,12 @@ describe('textTransformers Unit Tests', () => {
     expect(cleaned).not.toContain('utilize');
   });
 
+  test('capitalizeNecessaryWords capitalizes sentence starts and proper nouns', () => {
+    const rawInput = 'hello textflow team. i built chatgpt and gpt-4 api with json data on monday.';
+    const output = transformers.capitalizeNecessaryWords(rawInput);
+    expect(output).toBe('Hello TextFlow team. I built ChatGPT and GPT-4 API with JSON data on Monday.');
+  });
+
   test('calculateMetrics returns accurate counts', () => {
     const metrics = transformers.calculateMetrics('Hello world textflow');
     expect(metrics.characters).toBe(20);

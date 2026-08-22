@@ -21,7 +21,8 @@ import {
   Link2,
   Sparkles,
   FileCode,
-  Bot
+  Bot,
+  CaseSensitive
 } from 'lucide-react';
 
 export const ActionHub = () => {
@@ -62,6 +63,14 @@ export const ActionHub = () => {
       category: 'AI & Formatting',
       icon: Bot,
       action: (text) => transformers.humanizeAiText(text)
+    },
+    {
+      id: 'sentence-capitalizer',
+      title: 'Sentence & Proper Noun Capitalizer',
+      description: 'Capitalizes sentence starts and formats proper nouns (ChatGPT, GPT, API, JSON, TextFlow).',
+      category: 'AI & Formatting',
+      icon: CaseSensitive,
+      action: (text) => transformers.capitalizeNecessaryWords(text)
     },
     {
       id: 'uppercase',
