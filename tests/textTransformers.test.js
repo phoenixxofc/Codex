@@ -29,18 +29,19 @@ describe('textTransformers Unit Tests', () => {
     expect(transformers.generateSlug('TextFlow.io Enterprise Utility!')).toBe('textflowio-enterprise-utility');
   });
 
-  test('humanizeAiText strips AI filler words and simplifies vague buzzwords', () => {
-    const rawAiText = 'It is important to note that we must utilize robust solutions in order to spearhead growth.';
+  test('humanizeAiText strips expanded AI filler words and simplifies vague buzzwords', () => {
+    const rawAiText = 'First and foremost, it is crucial to remember that we must utilize cutting-edge solutions for a plethora of tasks.';
     const cleaned = transformers.humanizeAiText(rawAiText);
-    expect(cleaned).toBe('we must use strong solutions to lead growth.');
-    expect(cleaned).not.toContain('It is important to note that');
-    expect(cleaned).not.toContain('utilize');
+    expect(cleaned).toBe('we must use modern solutions for tasks.');
+    expect(cleaned).not.toContain('First and foremost');
+    expect(cleaned).not.toContain('it is crucial to remember that');
+    expect(cleaned).not.toContain('a plethora of');
   });
 
-  test('capitalizeNecessaryWords capitalizes sentence starts and proper nouns', () => {
-    const rawInput = 'hello textflow team. i built chatgpt and gpt-4 api with json data on monday.';
+  test('capitalizeNecessaryWords capitalizes sentence starts, tech acronyms, languages, and proper nouns', () => {
+    const rawInput = 'hello textflow team. i deployed docker and kubernetes on aws with python, rust, and react on january 15.';
     const output = transformers.capitalizeNecessaryWords(rawInput);
-    expect(output).toBe('Hello TextFlow team. I built ChatGPT and GPT-4 API with JSON data on Monday.');
+    expect(output).toBe('Hello TextFlow team. I deployed Docker and Kubernetes on AWS with Python, Rust, and React on January 15.');
   });
 
   test('calculateMetrics returns accurate counts', () => {

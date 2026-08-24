@@ -78,21 +78,39 @@ export const humanizeAiText = (text) => {
     /it is important to note that\s*/gi,
     /it is worth noting that\s*/gi,
     /it should be emphasized that\s*/gi,
+    /it is crucial to remember that\s*/gi,
+    /it is essential to understand that\s*/gi,
     /in conclusion,?\s*/gi,
     /to summarize,?\s*/gi,
-    /in summary,?\ conceived as\s*/gi,
+    /in summary,?\s*/gi,
+    /first and foremost,?\s*/gi,
+    /lastly but not least,?\s*/gi,
+    /last but not least,?\s*/gi,
     /a testament to\s*/gi,
     /tapestry of\s*/gi,
     /delve into\s*/gi,
     /delving into\s*/gi,
+    /shed light on\s*/gi,
+    /shedding light on\s*/gi,
+    /pave the way for\s*/gi,
+    /paving the way for\s*/gi,
     /at the end of the day,?\s*/gi,
     /in today's digital landscape,?\s*/gi,
+    /in today's fast-paced world,?\s*/gi,
     /in the realm of\s*/gi,
     /beacon of\s*/gi,
     /serves as a\s*/gi,
+    /serving as a\s*/gi,
     /plays a crucial role in\s*/gi,
     /plays a pivotal role in\s*/gi,
-    /without further ado,?\s*/gi
+    /without further ado,?\s*/gi,
+    /moving forward,?\s*/gi,
+    /going forward,?\s*/gi,
+    /all things considered,?\s*/gi,
+    /it goes without saying that\s*/gi,
+    / needless to say,?\s*/gi,
+    /a plethora of\s*/gi,
+    /a myriad of\s*/gi
   ];
 
   fillerPhrases.forEach((phrase) => {
@@ -115,6 +133,13 @@ export const humanizeAiText = (text) => {
     [/\bmeticulously\b/gi, 'carefully'],
     [/\bmeticulous\b/gi, 'careful'],
     [/\brobust\b/gi, 'strong'],
+    [/\bgame-changer\b/gi, 'big shift'],
+    [/\bcutting-edge\b/gi, 'modern'],
+    [/\bstate-of-the-art\b/gi, 'modern'],
+    [/\bgroundbreaking\b/gi, 'new'],
+    [/\brevolutionary\b/gi, 'new'],
+    [/\bseamlessly\b/gi, 'easily'],
+    [/\bseamless\b/gi, 'smooth'],
     [/\bin order to\b/gi, 'to'],
     [/\bdue to the fact that\b/gi, 'because'],
     [/\bfor the purpose of\b/gi, 'for'],
@@ -134,7 +159,7 @@ export const humanizeAiText = (text) => {
 /**
  * Smart Sentence & Proper Noun Capitalizer
  * Capitalizes words at the start of sentences and preserves/formats essential proper nouns,
- * brand names (ChatGPT, GPT-4, TextFlow), technical terms (API, JSON, HTTP, URL), days, months, and personal pronoun 'I'.
+ * brand names (ChatGPT, GPT-4, TextFlow, Claude, Gemini, OpenAI), technical terms (API, JSON, HTTP, URL, REST, GraphQL, CI/CD, SaaS), days, months, and personal pronoun 'I'.
  */
 export const capitalizeNecessaryWords = (text) => {
   if (!text) return '';
@@ -149,12 +174,26 @@ export const capitalizeNecessaryWords = (text) => {
 
   // 3. Map common tech brands, acronyms, and proper nouns to exact proper casing
   const properNouns = [
+    // Tech Products & Organizations
     [/\bchatgpt\b/gi, 'ChatGPT'],
     [/\bgpt\b/gi, 'GPT'],
     [/\bgpt-3\b/gi, 'GPT-3'],
     [/\bgpt-4\b/gi, 'GPT-4'],
     [/\btextflow\b/gi, 'TextFlow'],
     [/\bopenai\b/gi, 'OpenAI'],
+    [/\bclaude\b/gi, 'Claude'],
+    [/\bgemini\b/gi, 'Gemini'],
+    [/\bgoogle\b/gi, 'Google'],
+    [/\bmicrosoft\b/gi, 'Microsoft'],
+    [/\bapple\b/gi, 'Apple'],
+    [/\bamazon\b/gi, 'Amazon'],
+    [/\baws\b/gi, 'AWS'],
+    [/\bazure\b/gi, 'Azure'],
+    [/\bvercel\b/gi, 'Vercel'],
+    [/\bgithub\b/gi, 'GitHub'],
+    [/\bgitlab\b/gi, 'GitLab'],
+
+    // Technical Acronyms & Standards
     [/\bapi\b/gi, 'API'],
     [/\bapis\b/gi, 'APIs'],
     [/\bjson\b/gi, 'JSON'],
@@ -166,16 +205,53 @@ export const capitalizeNecessaryWords = (text) => {
     [/\bhttps\b/gi, 'HTTPS'],
     [/\bip\b/gi, 'IP'],
     [/\bsql\b/gi, 'SQL'],
+    [/\brest\b/gi, 'REST'],
+    [/\bgraphql\b/gi, 'GraphQL'],
+    [/\bsaas\b/gi, 'SaaS'],
+    [/\bci\/cd\b/gi, 'CI/CD'],
+    [/\bsdk\b/gi, 'SDK'],
+    [/\bcli\b/gi, 'CLI'],
+    [/\bui\/ux\b/gi, 'UI/UX'],
+    [/\bui\b/gi, 'UI'],
+    [/\bux\b/gi, 'UX'],
+
+    // Operating Systems & Languages
     [/\bjavascript\b/gi, 'JavaScript'],
     [/\btypescript\b/gi, 'TypeScript'],
     [/\breact\b/gi, 'React'],
+    [/\bnode\.?js\b/gi, 'Node.js'],
+    [/\bpython\b/gi, 'Python'],
+    [/\brust\b/gi, 'Rust'],
+    [/\bdocker\b/gi, 'Docker'],
+    [/\bkubernetes\b/gi, 'Kubernetes'],
+    [/\blinux\b/gi, 'Linux'],
+    [/\bmacos\b/gi, 'macOS'],
+    [/\bwindows\b/gi, 'Windows'],
+    [/\bandroid\b/gi, 'Android'],
+    [/\bios\b/gi, 'iOS'],
+
+    // Days of the Week
     [/\bmonday\b/gi, 'Monday'],
     [/\btuesday\b/gi, 'Tuesday'],
     [/\bwednesday\b/gi, 'Wednesday'],
     [/\bthursday\b/gi, 'Thursday'],
     [/\bfriday\b/gi, 'Friday'],
     [/\bsaturday\b/gi, 'Saturday'],
-    [/\bsunday\b/gi, 'Sunday']
+    [/\bsunday\b/gi, 'Sunday'],
+
+    // Months of the Year
+    [/\bjanuary\b/gi, 'January'],
+    [/\bfebruary\b/gi, 'February'],
+    [/\bmarch\b/gi, 'March'],
+    [/\bapril\b/gi, 'April'],
+    [/\bmay\b/gi, 'May'],
+    [/\bjune\b/gi, 'June'],
+    [/\bjuly\b/gi, 'July'],
+    [/\baugust\b/gi, 'August'],
+    [/\bseptember\b/gi, 'September'],
+    [/\boctober\b/gi, 'October'],
+    [/\bnovember\b/gi, 'November'],
+    [/\bdecember\b/gi, 'December']
   ];
 
   properNouns.forEach(([regex, replacement]) => {
