@@ -261,6 +261,168 @@ export const capitalizeNecessaryWords = (text) => {
   return result;
 };
 
+/**
+ * Official Report Formatter & Table of Contents Generator
+ * Formats report text for MS Word compatibility:
+ * - Font: Times New Roman (12pt body, 13pt or 14pt title)
+ * - Line spacing: 1.5 line height
+ * - Justification: block format (justified, zero paragraph indent)
+ * - Title indicators: x.x.x, x.x, x, or first line after blank line spacer
+ * - Title bolding & title capitalization
+ * - Bold text before colon (e.g. "Objective:")
+ * - Automatic Table of Contents generator from section numbering
+ */
+export const formatOfficialReport = (text, options = {}) => {
+  if (!text) return { plainText: '', htmlText: '', tocText: '' };
+
+  const {
+    titleIndicator = 'xxx', // 'xxx' (x.x.x, x.x, x), 'xx' (x.x, x), 'x' (x), 'blankline'
+    titleFontSize = 14,     // 13 or 14
+    boldTitles = true,      // true/false
+    boldColonPrefix = true, // true/false
+    generateToc = true      // true/false
+  } = options;
+
+  const lines = text.split(/\r?\n/);
+  const formattedLines = [];
+  const tocEntries = [];
+  let isPreviousLineBlank = true;
+
+  const isTitleLine = (line, isPrevBlank) => {
+    const trimmed = line.trim();
+    if (!trimmed) return false;
+
+    if (titleIndicator === 'xxx') {
+      // Matches x, x.x, or x.x.x (up to 3 levels)
+      return /^\d+(\.\d+){0,2}\s+\S+/.test(trimmed);
+    } else if (titleIndicator === 'xx') {
+      // Matches x or x.x (up to 2 levels)
+      return /^\d+(\.\d+){0,1}\s+\S+/.test(trimmed);
+    } else if (titleIndicator === 'x') {
+      // Matches chapter level (x or x.0)
+      return /^\d+(\.0)?\s+\S+/.test(trimmed);
+    } else if (titleIndicator === 'blankline') {
+      return isPrevBlank && trimmed.length > 0 && trimmed.length < 80 && !trimmed.endsWith('.');
+    }
+    // Generic auto fallback check for numbered headings
+    return /^\d+(\.\d+)*\s+\S+/.test(trimmed);
+  };
+
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      formattedLines.push({ type: 'blank', content: '' });
+      isPreviousLineBlank = true;
+      return;
+    }
+
+    const titleMatch = isTitleLine(trimmed, isPreviousLineBlank);
+
+    if (titleMatch) {
+      // It's a title/heading line
+      let titleContent = capitalizeNecessaryWords(trimmed);
+      formattedLines.push({
+        type: 'title',
+        content: titleContent,
+        bold: boldTitles,
+        fontSize: titleFontSize
+      });
+
+      // Collect for Table of Contents if numbered
+      const numMatch = trimmed.match(/^(\d+(\.\d+)*)\s+(.*)/);
+      if (numMatch) {
+        tocEntries.push({
+          number: numMatch[1],
+          title: capitalizeNecessaryWords(numMatch[3]),
+          full: `${numMatch[1]} ${capitalizeNecessaryWords(numMatch[3])}`
+        });
+      } else {
+        tocEntries.push({
+          number: '',
+          title: titleContent,
+          full: titleContent
+        });
+      }
+
+      isPreviousLineBlank = false;
+    } else {
+      // Body text paragraph
+      let bodyContent = capitalizeNecessaryWords(trimmed);
+
+      // Handle bolding text before colon (e.g. "Background:" -> "<b>Background:</b>")
+      if (boldColonPrefix && /^[A-Za-z0-9\s_-]+:/.test(bodyContent)) {
+        bodyContent = bodyContent.replace(/^([A-Za-z0-9\s_-]+:)/, (match) => `__BOLD_COLON__${match}__END_COLON__`);
+      }
+
+      formattedLines.push({
+        type: 'body',
+        content: bodyContent
+      });
+      isPreviousLineBlank = false;
+    }
+  });
+
+  // Construct Plaintext Result
+  let plainTextOutput = '';
+  let tocTextOutput = '';
+
+  if (generateToc && tocEntries.length > 0) {
+    tocTextOutput = 'TABLE OF CONTENTS\n=================\n';
+    tocEntries.forEach((entry) => {
+      const indent = entry.number ? '  '.repeat((entry.number.split('.').length - 1)) : '';
+      tocTextOutput += `${indent}${entry.full}\n`;
+    });
+    tocTextOutput += '\n';
+  }
+
+  formattedLines.forEach((item) => {
+    if (item.type === 'blank') {
+      plainTextOutput += '\n';
+    } else if (item.type === 'title') {
+      plainTextOutput += `${item.content}\n`;
+    } else {
+      let cleanContent = item.content.replace(/__BOLD_COLON__(.*?)__END_COLON__/g, '$1');
+      plainTextOutput += `${cleanContent}\n`;
+    }
+  });
+
+  const finalPlainText = (tocTextOutput + plainTextOutput).trim();
+
+  // Construct MS Word Compatible Rich HTML
+  let htmlOutput = `<div style="font-family: 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.5; text-align: justify; margin: 0; padding: 0;">`;
+
+  if (generateToc && tocEntries.length > 0) {
+    htmlOutput += `<div style="margin-bottom: 24pt;">`;
+    htmlOutput += `<p style="font-size: ${titleFontSize}pt; font-weight: bold; margin-bottom: 12pt; text-align: left;">TABLE OF CONTENTS</p>`;
+    tocEntries.forEach((entry) => {
+      const level = entry.number ? entry.number.split('.').length - 1 : 0;
+      const paddingLeft = level * 18;
+      htmlOutput += `<p style="font-size: 12pt; margin: 4pt 0 4pt ${paddingLeft}pt; text-align: left;">${entry.full}</p>`;
+    });
+    htmlOutput += `</div><hr style="border: 0; border-top: 1px solid #ccc; margin: 18pt 0;" />`;
+  }
+
+  formattedLines.forEach((item) => {
+    if (item.type === 'blank') {
+      htmlOutput += `<p style="margin: 0; min-height: 12pt;">&nbsp;</p>`;
+    } else if (item.type === 'title') {
+      const weight = item.bold ? 'font-weight: bold;' : 'font-weight: normal;';
+      htmlOutput += `<p style="font-size: ${item.fontSize}pt; ${weight} margin-top: 14pt; margin-bottom: 6pt; text-align: left;">${item.content}</p>`;
+    } else {
+      let htmlBody = item.content.replace(/__BOLD_COLON__(.*?)__END_COLON__/g, '<b>$1</b>');
+      htmlOutput += `<p style="font-size: 12pt; margin-top: 0; margin-bottom: 8pt; text-indent: 0; text-align: justify;">${htmlBody}</p>`;
+    }
+  });
+
+  htmlOutput += `</div>`;
+
+  return {
+    plainText: finalPlainText,
+    htmlText: htmlOutput,
+    tocText: tocTextOutput.trim()
+  };
+};
+
 export const calculateMetrics = (text) => {
   if (!text) {
     return { characters: 0, words: 0, lines: 0, readingTimeMinutes: 0 };

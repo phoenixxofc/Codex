@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext.jsx';
 import { ToolCard } from './ToolCard.jsx';
 import * as transformers from '../../utils/textTransformers.js';
@@ -22,7 +22,10 @@ import {
   Sparkles,
   FileCode,
   Bot,
-  CaseSensitive
+  CaseSensitive,
+  FileSpreadsheet,
+  Check,
+  Copy
 } from 'lucide-react';
 
 export const ActionHub = () => {
@@ -36,25 +39,85 @@ export const ActionHub = () => {
     showToast
   } = useApp();
 
+  // Report Formatter Options State
+  const [reportTitleIndicator, setReportTitleIndicator] = useState('xxx'); // 'xxx', 'xx', 'x', 'blankline'
+  const [reportTitleFontSize, setReportTitleFontSize] = useState(14); // 13 or 14
+  const [reportBoldTitles, setReportBoldTitles] = useState(true);
+  const [reportBoldColon, setReportBoldColon] = useState(true);
+  const [reportGenerateToc, setReportGenerateToc] = useState(true);
+  const [richCopied, setRichCopied] = useState(false);
+  const [reportHtmlResult, setReportHtmlResult] = useState('');
+
   const handleExecuteTool = (name, transformFn) => {
     if (!inputText) {
       showToast('Please enter text into the input pane first.');
       return;
     }
     const result = transformFn(inputText);
-    setOutputText(result);
+    if (typeof result === 'object' && result.plainText !== undefined) {
+      setOutputText(result.plainText);
+      setReportHtmlResult(result.htmlText);
+    } else {
+      setOutputText(result);
+      setReportHtmlResult('');
+    }
     setActiveTool(name);
-    addHistoryEntry(name, inputText, result);
+    addHistoryEntry(name, inputText, typeof result === 'object' ? result.plainText : result);
     showToast(`Applied: ${name}`);
+  };
+
+  const handleCopyRichTextForWord = () => {
+    if (!inputText) {
+      showToast('Please enter report text first.');
+      return;
+    }
+    const res = transformers.formatOfficialReport(inputText, {
+      titleIndicator: reportTitleIndicator,
+      titleFontSize: reportTitleFontSize,
+      boldTitles: reportBoldTitles,
+      boldColonPrefix: reportBoldColon,
+      generateToc: reportGenerateToc
+    });
+
+    try {
+      const blob = new Blob([res.htmlText], { type: 'text/html' });
+      const textBlob = new Blob([res.plainText], { type: 'text/plain' });
+      const data = [new ClipboardItem({ 'text/html': blob, 'text/plain': textBlob })];
+      navigator.clipboard.write(data).then(() => {
+        setRichCopied(true);
+        showToast('Copied MS Word Rich-Text format to clipboard!');
+        setTimeout(() => setRichCopied(false), 2500);
+      });
+    } catch (err) {
+      navigator.clipboard.writeText(res.plainText);
+      showToast('Copied plain text format to clipboard!');
+    }
   };
 
   const handleDeselectTool = () => {
     setActiveTool(null);
     setOutputText('');
+    setReportHtmlResult('');
     showToast('Deselected active tool');
   };
 
   const toolsList = [
+    // Official Report Studio
+    {
+      id: 'official-report-formatter',
+      title: 'Official Report Formatter & TOC Generator',
+      description: 'Formats reports with Times New Roman (12pt body, 13/14pt titles), 1.5 line spacing, block justification, bold colons, and Table of Contents.',
+      category: 'Official Report Studio',
+      icon: FileSpreadsheet,
+      action: (text) => transformers.formatOfficialReport(text, {
+        titleIndicator: reportTitleIndicator,
+        titleFontSize: reportTitleFontSize,
+        boldTitles: reportBoldTitles,
+        boldColonPrefix: reportBoldColon,
+        generateToc: reportGenerateToc
+      })
+    },
+
     // AI & Formatting Tools
     {
       id: 'ai-humanizer',
@@ -240,7 +303,7 @@ export const ActionHub = () => {
     );
   });
 
-  const categories = ['AI & Formatting', 'Extraction', 'Developer'];
+  const categories = ['Official Report Studio', 'AI & Formatting', 'Extraction', 'Developer'];
 
   return (
     <div className="my-6">
@@ -271,6 +334,90 @@ export const ActionHub = () => {
             <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 border-b border-slate-800/80 pb-1 flex items-center justify-between">
               <span>{cat} Utilities</span>
             </h3>
+
+            {/* Interactive Settings Control Panel for Official Report Studio */}
+            {cat === 'Official Report Studio' && (
+              <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 mb-4 text-xs space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
+                  <div className="font-bold text-cyan-400 flex items-center gap-1.5">
+                    <FileSpreadsheet className="w-4 h-4" />
+                    <span>Microsoft Word Official Report Controls</span>
+                  </div>
+
+                  <button
+                    onClick={handleCopyRichTextForWord}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg transition-colors"
+                  >
+                    {richCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{richCopied ? 'Copied MS Word Format' : 'Copy Formatted for MS Word'}</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {/* Title Indicator Selector */}
+                  <div>
+                    <label className="text-slate-400 block mb-1 font-semibold">Title Line Pattern Indicator:</label>
+                    <select
+                      value={reportTitleIndicator}
+                      onChange={(e) => setReportTitleIndicator(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded px-2.5 py-1 focus:border-cyan-500"
+                    >
+                      <option value="xxx">x.x.x (Sub-subheading e.g. 1.1.1)</option>
+                      <option value="xx">x.x (Subheading e.g. 1.1)</option>
+                      <option value="x">x / x.0 (Chapter e.g. 1 or 1.0)</option>
+                      <option value="blankline">First Line After Blank Line Spacer</option>
+                    </select>
+                  </div>
+
+                  {/* Title Font Size */}
+                  <div>
+                    <label className="text-slate-400 block mb-1 font-semibold">Title Font Size (Body = 12pt Times New Roman):</label>
+                    <select
+                      value={reportTitleFontSize}
+                      onChange={(e) => setReportTitleFontSize(Number(e.target.value))}
+                      className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded px-2.5 py-1 focus:border-cyan-500"
+                    >
+                      <option value={14}>14pt (Standard Header)</option>
+                      <option value={13}>13pt (Compact Header)</option>
+                    </select>
+                  </div>
+
+                  {/* Options Toggles */}
+                  <div className="flex flex-col justify-center space-y-1.5 pt-1">
+                    <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={reportBoldTitles}
+                        onChange={(e) => setReportBoldTitles(e.target.checked)}
+                        className="rounded border-slate-800 text-cyan-500 focus:ring-cyan-500"
+                      />
+                      <span>Make All Titles Bold (Default: Bold)</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={reportBoldColon}
+                        onChange={(e) => setReportBoldColon(e.target.checked)}
+                        className="rounded border-slate-800 text-cyan-500 focus:ring-cyan-500"
+                      />
+                      <span>Make Text Before Colon (:) Bold</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={reportGenerateToc}
+                        onChange={(e) => setReportGenerateToc(e.target.checked)}
+                        className="rounded border-slate-800 text-cyan-500 focus:ring-cyan-500"
+                      />
+                      <span>Generate Table of Contents from Numbers</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
               {catTools.map((tool) => (
                 <ToolCard
