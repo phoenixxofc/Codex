@@ -25,7 +25,8 @@ import {
   CaseSensitive,
   FileSpreadsheet,
   Check,
-  Copy
+  Copy,
+  Wand2
 } from 'lucide-react';
 
 export const ActionHub = () => {
@@ -47,6 +48,10 @@ export const ActionHub = () => {
   const [reportGenerateToc, setReportGenerateToc] = useState(true);
   const [richCopied, setRichCopied] = useState(false);
   const [reportHtmlResult, setReportHtmlResult] = useState('');
+
+  // AI Humanizer Studio Options State
+  const [aiRemoveFiller, setAiRemoveFiller] = useState(true);
+  const [aiRestructureText, setAiRestructureText] = useState(true);
 
   const handleExecuteTool = (name, transformFn) => {
     if (!inputText) {
@@ -122,10 +127,13 @@ export const ActionHub = () => {
     {
       id: 'ai-humanizer',
       title: 'AI Text Humanizer & Polisher',
-      description: 'Removes AI filler phrases ("it is important to note", "tapestry") and simplifies complex buzzwords.',
+      description: 'Humanizes AI text by removing filler phrases ("it is important to note") and restructuring sentence flow.',
       category: 'AI & Formatting',
       icon: Bot,
-      action: (text) => transformers.humanizeAiText(text)
+      action: (text) => transformers.humanizeAiText(text, {
+        removeFillerWords: aiRemoveFiller,
+        restructureText: aiRestructureText
+      })
     },
     {
       id: 'sentence-capitalizer',
@@ -414,6 +422,38 @@ export const ActionHub = () => {
                       <span>Generate Table of Contents from Numbers</span>
                     </label>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Interactive Control Panel for AI & Formatting Utilities */}
+            {cat === 'AI & Formatting' && (
+              <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 mb-4 text-xs space-y-3">
+                <div className="flex items-center gap-1.5 font-bold text-cyan-400 pb-2 border-b border-slate-800/80">
+                  <Wand2 className="w-4 h-4" />
+                  <span>AI Humanizer & Formatting Settings</span>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-6 pt-1">
+                  <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={aiRemoveFiller}
+                      onChange={(e) => setAiRemoveFiller(e.target.checked)}
+                      className="rounded border-slate-800 text-cyan-500 focus:ring-cyan-500"
+                    />
+                    <span>Remove AI Filler Words & Phrases ("it is important to note", "tapestry of")</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={aiRestructureText}
+                      onChange={(e) => setAiRestructureText(e.target.checked)}
+                      className="rounded border-slate-800 text-cyan-500 focus:ring-cyan-500"
+                    />
+                    <span>Humanize by Restructuring Text & Sentence Flow ("is able to" → "can", "utilize" → "use")</span>
+                  </label>
                 </div>
               </div>
             )}

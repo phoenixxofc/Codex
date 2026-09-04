@@ -29,10 +29,19 @@ describe('textTransformers Unit Tests', () => {
     expect(transformers.generateSlug('TextFlow.io Enterprise Utility!')).toBe('textflowio-enterprise-utility');
   });
 
-  test('humanizeAiText strips expanded AI filler words and simplifies vague buzzwords', () => {
-    const rawAiText = 'First and foremost, it is crucial to remember that we must utilize cutting-edge solutions for a plethora of tasks.';
-    const cleaned = transformers.humanizeAiText(rawAiText);
-    expect(cleaned).toBe('we must use modern solutions for tasks.');
+  test('humanizeAiText supports removeFillerWords and restructureText options separately and together', () => {
+    const rawAiText = 'It is important to note that the team is able to utilize cutting-edge solutions.';
+
+    // Default (both true)
+    expect(transformers.humanizeAiText(rawAiText)).toBe('The team can use modern solutions.');
+
+    // Only filler removal
+    expect(transformers.humanizeAiText(rawAiText, { removeFillerWords: true, restructureText: false }))
+      .toBe('The team is able to utilize cutting-edge solutions.');
+
+    // Only text restructuring
+    expect(transformers.humanizeAiText(rawAiText, { removeFillerWords: false, restructureText: true }))
+      .toBe('It is important to note that the team can use modern solutions.');
   });
 
   test('capitalizeNecessaryWords capitalizes sentence starts, tech acronyms, languages, and proper nouns', () => {
@@ -41,19 +50,22 @@ describe('textTransformers Unit Tests', () => {
     expect(output).toBe('Hello TextFlow team. I deployed Docker and Kubernetes on AWS with Python, Rust, and React on January 15.');
   });
 
-  test('formatOfficialReport formats text for MS Word with Table of Contents and colon prefix bolding', () => {
-    const reportText = `1.0 Executive Summary\nBackground: The project was completed on Monday.\n\n1.1 Key Objectives\nGoal: Achieve zero-server processing.`;
+  test('formatOfficialReport formats standalone title lines and ignores inline section referrals inside sentences', () => {
+    const reportText = `1.0 Executive Summary\nBackground: As described in section 1.1 below, the project was completed on Monday.\n\n1.1 Key Objectives\nGoal: Achieve zero-server processing. Refer to section 1.1.1 for full details.`;
+
     const res = transformers.formatOfficialReport(reportText, {
-      titleIndicator: 'x',
+      titleIndicator: 'xxx',
       titleFontSize: 14,
       boldTitles: true,
       boldColonPrefix: true,
       generateToc: true
     });
 
-    expect(res.plainText).toContain('TABLE OF CONTENTS');
-    expect(res.plainText).toContain('1.0 Executive Summary');
-    expect(res.plainText).toContain('1.1 Key Objectives');
+    // TOC should only contain 1.0 Executive Summary and 1.1 Key Objectives, NOT 1.1.1 from the sentence body
+    expect(res.tocText).toContain('1.0 Executive Summary');
+    expect(res.tocText).toContain('1.1 Key Objectives');
+    expect(res.tocText).not.toContain('1.1.1');
+
     expect(res.htmlText).toContain('font-family: \'Times New Roman\'');
     expect(res.htmlText).toContain('<b>Background:</b>');
     expect(res.htmlText).toContain('<b>Goal:</b>');

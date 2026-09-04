@@ -65,94 +65,128 @@ export const reverseString = (text) => {
 
 /**
  * AI Prose Humanizer & Polisher
- * Identifies and strips common AI filler phrases, buzzwords, and overly complex/vague vocabulary,
- * replacing them with clean, direct, natural human phrasing.
+ * Options:
+ * - removeFillerWords: strips AI filler phrases and fluff
+ * - restructureText: restructures wordy sentence patterns, converts passive/clunky verb phrases, and simplifies vocabulary
  */
-export const humanizeAiText = (text) => {
+export const humanizeAiText = (text, options = {}) => {
   if (!text) return '';
+
+  const {
+    removeFillerWords = true,
+    restructureText = true
+  } = options;
 
   let result = text;
 
   // 1. Remove redundant AI filler phrases (case-insensitive)
-  const fillerPhrases = [
-    /it is important to note that\s*/gi,
-    /it is worth noting that\s*/gi,
-    /it should be emphasized that\s*/gi,
-    /it is crucial to remember that\s*/gi,
-    /it is essential to understand that\s*/gi,
-    /in conclusion,?\s*/gi,
-    /to summarize,?\s*/gi,
-    /in summary,?\s*/gi,
-    /first and foremost,?\s*/gi,
-    /lastly but not least,?\s*/gi,
-    /last but not least,?\s*/gi,
-    /a testament to\s*/gi,
-    /tapestry of\s*/gi,
-    /delve into\s*/gi,
-    /delving into\s*/gi,
-    /shed light on\s*/gi,
-    /shedding light on\s*/gi,
-    /pave the way for\s*/gi,
-    /paving the way for\s*/gi,
-    /at the end of the day,?\s*/gi,
-    /in today's digital landscape,?\s*/gi,
-    /in today's fast-paced world,?\s*/gi,
-    /in the realm of\s*/gi,
-    /beacon of\s*/gi,
-    /serves as a\s*/gi,
-    /serving as a\s*/gi,
-    /plays a crucial role in\s*/gi,
-    /plays a pivotal role in\s*/gi,
-    /without further ado,?\s*/gi,
-    /moving forward,?\s*/gi,
-    /going forward,?\s*/gi,
-    /all things considered,?\s*/gi,
-    /it goes without saying that\s*/gi,
-    / needless to say,?\s*/gi,
-    /a plethora of\s*/gi,
-    /a myriad of\s*/gi
-  ];
+  if (removeFillerWords) {
+    const fillerPhrases = [
+      /it is important to note that\s*/gi,
+      /it is worth noting that\s*/gi,
+      /it should be emphasized that\s*/gi,
+      /it is crucial to remember that\s*/gi,
+      /it is essential to understand that\s*/gi,
+      /in conclusion,?\s*/gi,
+      /to summarize,?\s*/gi,
+      /in summary,?\s*/gi,
+      /first and foremost,?\s*/gi,
+      /lastly but not least,?\s*/gi,
+      /last but not least,?\s*/gi,
+      /a testament to\s*/gi,
+      /tapestry of\s*/gi,
+      /delve into\s*/gi,
+      /delving into\s*/gi,
+      /shed light on\s*/gi,
+      /shedding light on\s*/gi,
+      /pave the way for\s*/gi,
+      /paving the way for\s*/gi,
+      /at the end of the day,?\s*/gi,
+      /in today's digital landscape,?\s*/gi,
+      /in today's fast-paced world,?\s*/gi,
+      /in the realm of\s*/gi,
+      /beacon of\s*/gi,
+      /serves as a\s*/gi,
+      /serving as a\s*/gi,
+      /plays a crucial role in\s*/gi,
+      /plays a pivotal role in\s*/gi,
+      /without further ado,?\s*/gi,
+      /moving forward,?\s*/gi,
+      /going forward,?\s*/gi,
+      /all things considered,?\s*/gi,
+      /it goes without saying that\s*/gi,
+      /needless to say,?\s*/gi,
+      /a plethora of\s*/gi,
+      /a myriad of\s*/gi
+    ];
 
-  fillerPhrases.forEach((phrase) => {
-    result = result.replace(phrase, '');
-  });
+    fillerPhrases.forEach((phrase) => {
+      result = result.replace(phrase, '');
+    });
+  }
 
-  // 2. Replace complex/vague AI vocabulary with natural human words
-  const vocabMap = [
-    [/\butilize\b/gi, 'use'],
-    [/\butilized\b/gi, 'used'],
-    [/\butilizing\b/gi, 'using'],
-    [/\butilization\b/gi, 'use'],
-    [/\bleverage\b/gi, 'use'],
-    [/\bleveraged\b/gi, 'used'],
-    [/\bleveraging\b/gi, 'using'],
-    [/\bparamount\b/gi, 'vital'],
-    [/\bspearhead\b/gi, 'lead'],
-    [/\bspearheaded\b/gi, 'led'],
-    [/\bmultifaceted\b/gi, 'varied'],
-    [/\bmeticulously\b/gi, 'carefully'],
-    [/\bmeticulous\b/gi, 'careful'],
-    [/\brobust\b/gi, 'strong'],
-    [/\bgame-changer\b/gi, 'big shift'],
-    [/\bcutting-edge\b/gi, 'modern'],
-    [/\bstate-of-the-art\b/gi, 'modern'],
-    [/\bgroundbreaking\b/gi, 'new'],
-    [/\brevolutionary\b/gi, 'new'],
-    [/\bseamlessly\b/gi, 'easily'],
-    [/\bseamless\b/gi, 'smooth'],
-    [/\bin order to\b/gi, 'to'],
-    [/\bdue to the fact that\b/gi, 'because'],
-    [/\bfor the purpose of\b/gi, 'for'],
-    [/\bnotwithstanding the fact that\b/gi, 'although'],
-    [/\bsynergy\b/gi, 'teamwork'],
-    [/\bparadigm shift\b/gi, 'big change']
-  ];
+  // 2. Restructure sentence patterns & simplify vocabulary
+  if (restructureText) {
+    const restructureMap = [
+      // Verb phrase restructuring & active voice conversions
+      [/\bis able to\b/gi, 'can'],
+      [/\bhas the ability to\b/gi, 'can'],
+      [/\bwas able to\b/gi, 'could'],
+      [/\bhad the ability to\b/gi, 'could'],
+      [/\bis going to\b/gi, 'will'],
+      [/\bis in a position to\b/gi, 'can'],
+      [/\bmake a decision\b/gi, 'decide'],
+      [/\bmade a decision\b/gi, 'decided'],
+      [/\bcome to an agreement\b/gi, 'agree'],
+      [/\bcame to an agreement\b/gi, 'agreed'],
+      [/\bconduct an investigation into\b/gi, 'investigate'],
+      [/\bconducted an investigation into\b/gi, 'investigated'],
+      [/\bgive consideration to\b/gi, 'consider'],
+      [/\bgave consideration to\b/gi, 'considered'],
+      [/\bexhibit a preference for\b/gi, 'prefer'],
+      [/\bexhibits a preference for\b/gi, 'prefers'],
+      [/\bis reflective of\b/gi, 'reflects'],
+      [/\bare reflective of\b/gi, 'reflect'],
 
-  vocabMap.forEach(([pattern, replacement]) => {
-    result = result.replace(pattern, replacement);
-  });
+      // Buzzword & complex vocabulary simplification
+      [/\butilize\b/gi, 'use'],
+      [/\butilized\b/gi, 'used'],
+      [/\butilizing\b/gi, 'using'],
+      [/\butilization\b/gi, 'use'],
+      [/\bleverage\b/gi, 'use'],
+      [/\bleveraged\b/gi, 'used'],
+      [/\bleveraging\b/gi, 'using'],
+      [/\bparamount\b/gi, 'vital'],
+      [/\bspearhead\b/gi, 'lead'],
+      [/\bspearheaded\b/gi, 'led'],
+      [/\bmultifaceted\b/gi, 'varied'],
+      [/\bmeticulously\b/gi, 'carefully'],
+      [/\bmeticulous\b/gi, 'careful'],
+      [/\brobust\b/gi, 'strong'],
+      [/\bgame-changer\b/gi, 'big shift'],
+      [/\bcutting-edge\b/gi, 'modern'],
+      [/\bstate-of-the-art\b/gi, 'modern'],
+      [/\bgroundbreaking\b/gi, 'new'],
+      [/\brevolutionary\b/gi, 'new'],
+      [/\bseamlessly\b/gi, 'easily'],
+      [/\bseamless\b/gi, 'smooth'],
+      [/\bin order to\b/gi, 'to'],
+      [/\bdue to the fact that\b/gi, 'because'],
+      [/\bfor the purpose of\b/gi, 'for'],
+      [/\bnotwithstanding the fact that\b/gi, 'although'],
+      [/\bsynergy\b/gi, 'teamwork'],
+      [/\bparadigm shift\b/gi, 'big change']
+    ];
 
-  // Clean up any double spaces or line artifact leftovers
+    restructureMap.forEach(([pattern, replacement]) => {
+      result = result.replace(pattern, replacement);
+    });
+  }
+
+  // Capitalize start of sentences if needed after removals
+  result = result.replace(/(^\s*|[.!?]\s+|\n\s*)([a-z])/g, (match, prefix, char) => prefix + char.toUpperCase());
+
+  // Clean up double spaces or line artifact leftovers
   return result.replace(/[ \t]+/g, ' ').replace(/\n\s*\n/g, '\n').trim();
 };
 
@@ -268,6 +302,7 @@ export const capitalizeNecessaryWords = (text) => {
  * - Line spacing: 1.5 line height
  * - Justification: block format (justified, zero paragraph indent)
  * - Title indicators: x.x.x, x.x, x, or first line after blank line spacer
+ *   (Strictly standalone title lines on a new line; does NOT match inline sub-heading referrals within paragraphs)
  * - Title bolding & title capitalization
  * - Bold text before colon (e.g. "Objective:")
  * - Automatic Table of Contents generator from section numbering
@@ -292,20 +327,25 @@ export const formatOfficialReport = (text, options = {}) => {
     const trimmed = line.trim();
     if (!trimmed) return false;
 
+    // Must be a standalone line (cannot end with typical sentence punctuation like period unless it's a chapter number like 1.0)
+    // To ensure inline sub-heading referrals inside sentences are never matched as titles.
+    if (trimmed.length > 120) return false;
+
     if (titleIndicator === 'xxx') {
-      // Matches x, x.x, or x.x.x (up to 3 levels)
-      return /^\d+(\.\d+){0,2}\s+\S+/.test(trimmed);
+      // Standalone heading line matching x, x.x, or x.x.x at the very beginning of the line
+      // E.g. "1.2.3 Architectural Specifications"
+      return /^\d+(\.\d+){0,2}\s+[A-Za-z0-9]/.test(trimmed) && !/[.!?]$/.test(trimmed);
     } else if (titleIndicator === 'xx') {
       // Matches x or x.x (up to 2 levels)
-      return /^\d+(\.\d+){0,1}\s+\S+/.test(trimmed);
+      return /^\d+(\.\d+){0,1}\s+[A-Za-z0-9]/.test(trimmed) && !/[.!?]$/.test(trimmed);
     } else if (titleIndicator === 'x') {
       // Matches chapter level (x or x.0)
-      return /^\d+(\.0)?\s+\S+/.test(trimmed);
+      return /^\d+(\.0)?\s+[A-Za-z0-9]/.test(trimmed) && !/[.!?]$/.test(trimmed);
     } else if (titleIndicator === 'blankline') {
-      return isPrevBlank && trimmed.length > 0 && trimmed.length < 80 && !trimmed.endsWith('.');
+      return isPrevBlank && trimmed.length > 0 && trimmed.length < 80 && !/[.!?]$/.test(trimmed);
     }
-    // Generic auto fallback check for numbered headings
-    return /^\d+(\.\d+)*\s+\S+/.test(trimmed);
+    // Generic auto fallback check for standalone numbered headings
+    return /^\d+(\.\d+)*\s+[A-Za-z0-9]/.test(trimmed) && !/[.!?]$/.test(trimmed);
   };
 
   lines.forEach((line) => {
@@ -319,7 +359,7 @@ export const formatOfficialReport = (text, options = {}) => {
     const titleMatch = isTitleLine(trimmed, isPreviousLineBlank);
 
     if (titleMatch) {
-      // It's a title/heading line
+      // It's a standalone title/heading line
       let titleContent = capitalizeNecessaryWords(trimmed);
       formattedLines.push({
         type: 'title',
